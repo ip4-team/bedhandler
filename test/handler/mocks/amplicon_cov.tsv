@@ -1,0 +1,4 @@
+contig_id	contig_srt	contig_end	region_id	attributes	gc_count	overlaps	fwd_e2e	rev_e2e	total_reads	fwd_reads	rev_reads	cov20x	cov100x	cov500x
+this is a mock
+chr1	877000	877609	GENE1_1.3784	GENE_ID=GENE1;Pool=4,1	200	200	200	200	200	200	200	200	200	200
+chr1	89000	896760	GENE2_41.7260	GENE_ID=GENE2;Pool=3,6	200	200	200	200	200	200	200	200	200	200
