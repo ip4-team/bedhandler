@@ -105,3 +105,11 @@ def test_loader_expanded_result_is_sorted_by_chrom_start_end():
     assert expanded[2] == ['12', '10000', '100000']
     assert expanded[3] == ['chr12', '10001', '100000']
 
+
+def test_loader_strip_chr_works():
+    """
+    test that when strip_chr is True, 'chr' is removed from first bed column
+    """
+    bed_lines = BedFileLoader(mock_dir_path + 'general.bed', strip_chr=True).bed_lines
+    assert bed_lines[0][0] == '7'
+
