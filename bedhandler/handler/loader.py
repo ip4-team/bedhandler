@@ -80,8 +80,9 @@ class BedFileLoader:
                                                   'cov100x', 'cov500x'],
                  __general_tsv: __default_bed}
 
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, strip_chr: bool = False):
         self.filename = filename
+        self.strip_chr = strip_chr
 
         # reset indexes
         for key in self.__column_map.keys():
@@ -91,7 +92,7 @@ class BedFileLoader:
             with open(filename) as file:
                 content = file.read()
                 self.__column_map = self.get_map_with_searched_patterns(content)
-                self.header_lines, self.bed_lines = self.split_lines(content.split('\n'))
+                self.header_lines, self.bed_lines = self.split_lines(content.split('\n'), self.strip_chr)
                 self.__column_map = self.get_map_with_column_indexes()
                 self.file_type = self.predict_file_type()
                 self.columns = self.get_columns()
@@ -134,12 +135,15 @@ class BedFileLoader:
         return self.__column_map
 
     @staticmethod
-    def split_lines(lines) -> tuple:
+    def split_lines(lines, strip_chr) -> tuple:
         header_lines = []
         bed_lines = []
         for i, line in enumerate(lines):
             if re.search(r'^chr\d', line) or re.search(r'^\d', line.strip('\n')) or re.search(r'^chr.\t', line):
-                bed_lines.append(line.strip('\n').split('\t'))
+                bed_line = line.strip('\n').split('\t')
+                if strip_chr:
+                    bed_line[0] = bed_line[0].strip('chr')
+                bed_lines.append(bed_line)
             elif len(line) > 0:
                 header_lines.append(line)
         return header_lines, bed_lines
