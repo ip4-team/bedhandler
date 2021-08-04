@@ -17,7 +17,7 @@ setup(
     # versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0b2',
+    version='1.0.0b3',
 
     description='A Python3.x package for handling bed/tsv files',
     long_description=long_description,

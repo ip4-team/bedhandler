@@ -22,7 +22,8 @@ class BedFileLoader:
     Specifically, it will parse pool, gene id, region id, and other useful data that are located in different columns of
     at least three kinds of files:
 
-    - AmpliSeqExome.20131001.designed.bed
+    - AmpliSeqExome.YYYYMMDD.designed.bed
+    - PanelID.YYYYMMDD.designed.bed
     - effective_regions.bed
     - amplicon.cov.tsv (obtained from a .xls file from the Torrent Server and stored as TSV)
 
@@ -32,8 +33,8 @@ class BedFileLoader:
     We decided to use list of lists instead of working with [..., OR4F5, 5, ...] because some attributes can present
     more than one value for each region, such as pools, and also there are files where targets are merged,
     resulting in something like:
-    [..., GENE_ID=SAMD11&SAMD11;SUBMITTED_REGION=&;Pool=2,5&3,6, ...] that will be rewritten as:
-    [..., [[SAMD11], [SAMD11]], [[''], ['']], [[2,5], [3,6], ...]
+    [..., GENE_ID=GENE1&GENE1;SUBMITTED_REGION=&;Pool=2,5&3,6, ...] that will be rewritten as:
+    [..., [[GENE1], [GENE1]], [[''], ['']], [[2,5], [3,6], ...]
 
     We call the process of parsing these columns as "expanding" and it results in a list of lists which can be easily
     used in order to create a pandas.DataFrame, for example. Expanding those values is interesting because it makes it
@@ -56,23 +57,25 @@ class BedFileLoader:
 
     # represents the type of BED/TSV files that are currently supported
     __ampliseq_exome = 'ampliseq_exome'  # amplicon file
+    __ampliseq_panel = 'ampliseq_panel'  # amplicon file for specific panels, such as oncomine
     __effective_regions = 'effective_regions'  # effective regions after variant calling
     __amplicon_cov = 'amplicon_cov'  # amplicon coverage file after sequencing workflow
     __general_tsv = 'general_tsv'  # any BED/TSV
 
     # a map that stores the expected attributes that need to be found in each specific type
     __type_map = {__ampliseq_exome: {'code': __ampliseq_exome, 'columns': [__region_id, __attributes]},
+                  __ampliseq_panel: {'code': __ampliseq_panel, 'columns': [__attributes]},
                   __effective_regions: {'code': __effective_regions,
                                         'columns': [__region_id, __attributes, __submitted_region]},
                   __amplicon_cov: {'code': __amplicon_cov, 'columns': [__region_id, __attributes]},
-                  __general_tsv: {'code': __general_tsv,
-                                  'columns': []}}  # represents a BED file that do not contain any attribute
+                  __general_tsv: {'code': __general_tsv, 'columns': []}}
 
     #  three required BED fields (not camelcase)
     __default_bed = ['chrom', 'chrom_start', 'chrom_end']
 
     # column names for the (current) parsed file types
     __columns = {__ampliseq_exome: __default_bed + ['region_id', 'score', 'strand', 'frame', 'gene', 'pools'],
+                 __ampliseq_panel: __default_bed + ['region_id', 'score', 'gene', 'pools'],
                  __effective_regions: __default_bed + ['region_id', 'score', 'strand', 'frame', 'gene', 'pools',
                                                        'submitted_region'],
                  __amplicon_cov: __default_bed + ['region_id', 'gene', 'pools', 'gc_count', 'overlaps', 'fwd_e2e',
@@ -120,12 +123,14 @@ class BedFileLoader:
                 file_type = self.__type_map[key]['code']
                 prev_matched_columns = matched_columns
 
+        if prev_matched_columns >= 1 and len(self.bed_lines[0]) == 6:
+            return self.__type_map[self.__ampliseq_panel]['code']
+
         if prev_matched_columns == 2:
             if len(self.header_lines) > 0:
                 if len(self.header_lines[0].split('\t')) > 8:
-                    file_type = self.__type_map[self.__amplicon_cov]['code']
-                else:
-                    file_type = self.__type_map[self.__ampliseq_exome]['code']
+                    return self.__type_map[self.__amplicon_cov]['code']
+                return self.__type_map[self.__ampliseq_exome]['code']
 
         return file_type
 
