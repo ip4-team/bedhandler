@@ -1,4 +1,4 @@
-track this is a mock
+track name="this is a mock"
 chr1	68920	69130	GENE1_1.1.3601	0	+	.	GENE_ID=GENE1;Pool=1
 chr1	69210	69420	GENE2_1.1.11194	0	+	.	GENE_ID=GENE2;Pool=2
 chr1	69380	69560	GENE3_1.2.19824	0	+	.	GENE_ID=GENE3;Pool=3,6
